@@ -1,0 +1,5 @@
+# src/constants.py
+
+ESC_CODE = bytes([27]) # ESC-CODE：ASCII 27 
+
+TERMINAL_CODE = b'\x0D\x0A' # TERMINAL-CODE：HEXACODE 0D 0A
