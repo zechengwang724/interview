@@ -2,7 +2,7 @@
 
 def decode_ascii(data: bytes) -> str:
 	"""
-	將 ASCII 編碼的資料解碼為字符。
+	將 ASCII 編碼的資料解碼為可讀格式。
 
 	參數:
 	data (bytes): 以 ASCII 編碼的資料。

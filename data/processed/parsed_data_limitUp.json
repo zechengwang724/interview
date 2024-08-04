@@ -1,0 +1,65 @@
+[
+    {
+        "esc_code": "\u001b",
+        "header": {
+            "message_length": "0077",
+            "business_code": "01",
+            "format_code": "06",
+            "format_version": "04",
+            "transmission_number": "01000167"
+        },
+        "body": {
+            "stock_code": "6451",
+            "matching_time": "09:09:34.571609",
+            "reveal_flags": {
+                "成交價成交量": false,
+                "買進價買進量": 5,
+                "賣出價賣出量": 0,
+                "僅記成交價量": false
+            },
+            "limit_flags": {
+                "成交漲跌停註記": "漲停成交",
+                "最佳一檔買進": "漲停買進",
+                "最佳一檔賣出": "一般賣出",
+                "瞬間價格趨勢": "一般揭示"
+            },
+            "status_flags": {
+                "試算狀態註記": "一般揭示",
+                "試算後延後開盤註記": "無意義",
+                "試算後延後收盤註記": "無意義",
+                "撮合方式註記": "逐筆撮合",
+                "開盤註記": "否",
+                "收盤註記": "否"
+            },
+            "total_volume": "569",
+            "instant_quotes": {
+                "成交價量": null,
+                "最佳五檔買進價量": [
+                    {
+                        "price": "0",
+                        "quantity": "1074"
+                    },
+                    {
+                        "price": "104.5",
+                        "quantity": "18"
+                    },
+                    {
+                        "price": "104",
+                        "quantity": "5"
+                    },
+                    {
+                        "price": "103.5",
+                        "quantity": "2"
+                    },
+                    {
+                        "price": "103",
+                        "quantity": "3"
+                    }
+                ],
+                "最佳五檔賣出價量": []
+            }
+        },
+        "check_code": 0,
+        "terminal_code": "0D0A"
+    }
+]

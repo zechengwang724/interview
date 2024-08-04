@@ -1,35 +1,34 @@
 # src/parser.py
-# from utils.header.header_parser import parse_header
-# from utils.body.body_parser import parse_body
 
-from typing import List, Dict, Any
+from typing import List, Dict, Any, Tuple, Union
 from constants import ESC_CODE, TERMINAL_CODE
 from utils.decoder import decode_ascii, decode_packed_bcd, decode_hexacode
 from utils.format_converter import format_number_string, convert_match_time, convert_reveal_flags, convert_limit_flags, convert_status_flags, convert_instant_quotes, calculate_checksum
 
 
-def parse_file(file_path: str) -> List[Dict[str, Any]]:
+def parse_file(file_path: str, skip_conditions: List[Dict[str, Union[int, Tuple[int, int], str]]] = None) -> List[Dict[str, Any]]:
 	"""
 	解析二進位數據文件，提取並處理每筆記錄。
 
 	參數:
 	file_path(str): 解析的數據文件的路徑。
+	skip_conditions(list): 包含多個條件的列表，每個條件是包含位置、指定數值和模式的 dict。
 
-	輸出:
-	list: 包含解析後的數據記錄的列表，每條記錄以dict形式儲存。
+	返回:
+	list: 包含解析後的數據記錄的列表，每條記錄以 dict 形式儲存。
 	"""
 	data = []
 	with open(file_path, 'rb') as file:  # 使用二進位讀取資料
 		buffer = b''
 		while True:
-			chunk = file.read(1024)  # 一次讀取1024位元
+			chunk = file.read(1024)  # 一次讀取 1024 Bytes
 			if len(chunk) == 0:
 				if buffer:
 					process_chunk(buffer, data)
 				break  # 文件結束
-			
+
 			buffer += chunk
-			
+
 			# 如果 buffer 存在 TERMINAL_CODE
 			while TERMINAL_CODE in buffer:
 				record_end = buffer.index(TERMINAL_CODE) + len(TERMINAL_CODE)
@@ -38,18 +37,71 @@ def parse_file(file_path: str) -> List[Dict[str, Any]]:
 
 				# 檢查記錄是否以 ESC_CODE 開頭
 				if record.startswith(ESC_CODE):
+					# 檢查是否跳過資料
+					if skip_conditions and should_skip(record, skip_conditions):
+						continue  # 跳過該資料
+
 					process_chunk(record, data)  # 處理完整記錄
 
-
 	return data
+
+
+
+def should_skip(record: bytes, skip_conditions: List[Dict[str, Union[int, Tuple[int, int], str]]]) -> bool:
+	"""
+	判斷是否需要跳過該筆資料。
+	
+	參數:
+	record(bytes): 要檢查的記錄數據。
+	skip_conditions(list): 包含多個條件的列表，每個條件是包含位置、指定數值和模式的 dict。
+	
+	返回:
+	bool: 如果需要跳過，返回 True，否則返回 False。
+	"""
+
+	# 紀錄 include 條件的匹配結果
+	include_matches = []
+	# 紀錄 exclude 條件的匹配結果
+	exclude_matches = []
+
+	for condition in skip_conditions:
+		position = condition['position']
+		mask, value = condition['value']
+		mode = condition['mode']
+		
+		# 確保記錄長度足夠
+		if len(record) <= position:
+			continue
+		
+		# 檢查指定位置的值是否符合條件
+		record_value = record[position]
+		masked_value = record_value & mask
+		match = (masked_value == value)
+
+		
+		if mode == 'include':
+			include_matches.append(match)
+		elif mode == 'exclude':
+			exclude_matches.append(match)
+	
+	# 根據條件集合來判斷是否跳過
+	# include 所有條件都必須成立（取交集），include_result 為 True。
+	include_result = all(include_matches) if include_matches else True
+	# exclude 任一條件成立（取聯集），exclude_result 為 False。
+	exclude_result = any(exclude_matches) if exclude_matches else False
+
+	# 如果 not include_result，或 exclude_result，其中一個為 True，記錄會被跳過（返回 True ）。
+	return not include_result or exclude_result
+
+
 
 def process_chunk(chunk: bytes, data: List[Dict[str, Any]]) -> None:
 	"""
 	處理單一筆數據記錄，解析其中的各部分並將結果添加到data。
 
 	參數:
-	chunk (bytes): 一筆數據記錄，以字節串形式存儲。
-	data (list): 用於存儲解析後記錄的列表。
+	chunk (bytes): 單一筆數據記錄。
+	data (list): 用於儲存解析後記錄的列表。
 
 	返回:
 	None
@@ -112,7 +164,7 @@ def process_chunk(chunk: bytes, data: List[Dict[str, Any]]) -> None:
 	}
 
 	# 解析檢查碼
-	check_code = calculate_checksum(chunk[1:-len(TERMINAL_CODE)])  # 從第二個字節到倒數 TERMINAL_CODE 之前
+	check_code = calculate_checksum(chunk[1:-len(TERMINAL_CODE)])  # 從第二個 Byte 到倒數 TERMINAL_CODE 之前
 
 	# 解析 TERMINAL-CODE
 	terminal_code = decode_hexacode(chunk[-len(TERMINAL_CODE):])  # TERMINAL-CODE 位置
