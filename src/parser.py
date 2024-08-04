@@ -1,6 +1,4 @@
 # src/parser.py
-# from utils.header.header_parser import parse_header
-# from utils.body.body_parser import parse_body
 
 from typing import List, Dict, Any, Tuple, Union
 from constants import ESC_CODE, TERMINAL_CODE
@@ -16,14 +14,14 @@ def parse_file(file_path: str, skip_conditions: List[Dict[str, Union[int, Tuple[
 	file_path(str): 解析的數據文件的路徑。
 	skip_conditions(list): 包含多個條件的列表，每個條件是包含位置、指定數值和模式的 dict。
 
-	輸出:
+	返回:
 	list: 包含解析後的數據記錄的列表，每條記錄以 dict 形式儲存。
 	"""
 	data = []
 	with open(file_path, 'rb') as file:  # 使用二進位讀取資料
 		buffer = b''
 		while True:
-			chunk = file.read(1024)  # 一次讀取 1024 位元
+			chunk = file.read(1024)  # 一次讀取 1024 Bytes
 			if len(chunk) == 0:
 				if buffer:
 					process_chunk(buffer, data)
@@ -57,9 +55,10 @@ def should_skip(record: bytes, skip_conditions: List[Dict[str, Union[int, Tuple[
 	record(bytes): 要檢查的記錄數據。
 	skip_conditions(list): 包含多個條件的列表，每個條件是包含位置、指定數值和模式的 dict。
 	
-	輸出:
+	返回:
 	bool: 如果需要跳過，返回 True，否則返回 False。
 	"""
+
 	# 紀錄 include 條件的匹配結果
 	include_matches = []
 	# 紀錄 exclude 條件的匹配結果
@@ -67,7 +66,7 @@ def should_skip(record: bytes, skip_conditions: List[Dict[str, Union[int, Tuple[
 
 	for condition in skip_conditions:
 		position = condition['position']
-		value, mask = condition['value']
+		mask, value = condition['value']
 		mode = condition['mode']
 		
 		# 確保記錄長度足夠
@@ -75,8 +74,10 @@ def should_skip(record: bytes, skip_conditions: List[Dict[str, Union[int, Tuple[
 			continue
 		
 		# 檢查指定位置的值是否符合條件
-		record_value = record[position] & mask
-		match = (record_value == value)
+		record_value = record[position]
+		masked_value = record_value & mask
+		match = (masked_value == value)
+
 		
 		if mode == 'include':
 			include_matches.append(match)
@@ -163,7 +164,7 @@ def process_chunk(chunk: bytes, data: List[Dict[str, Any]]) -> None:
 	}
 
 	# 解析檢查碼
-	check_code = calculate_checksum(chunk[1:-len(TERMINAL_CODE)])  # 從第二個字節到倒數 TERMINAL_CODE 之前
+	check_code = calculate_checksum(chunk[1:-len(TERMINAL_CODE)])  # 從第二個 Byte 到倒數 TERMINAL_CODE 之前
 
 	# 解析 TERMINAL-CODE
 	terminal_code = decode_hexacode(chunk[-len(TERMINAL_CODE):])  # TERMINAL-CODE 位置

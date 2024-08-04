@@ -82,7 +82,7 @@ def convert_reveal_flags(binary_data: bytes) -> dict:
 	dict: 解碼後的揭示項目註記。
 	"""
 
-	# 確保 binary_data 是單字節的資料
+	# 確保 binary_data 是單位元組的資料
 	if len(binary_data) != 1:
 		raise ValueError("揭示項目註記應為長度為 1 的 bytes。")
 
@@ -110,7 +110,7 @@ def convert_limit_flags(byte_data: bytes) -> dict:
 	dict: 包含每一項漲跌停註記的描述。
 	"""
 
-	# 確保 binary_data 是單字節的資料
+	# 確保 binary_data 是單位元組的資料
 	if len(byte_data) != 1:
 		raise ValueError("漲跌停註記應為長度為 1 的 bytes。")
 	
@@ -163,7 +163,7 @@ def convert_status_flags(byte_data: bytes) -> dict:
 	dict: 包含每一項狀態註記的描述。
 	"""
 
-	# 確保 byte_data 是單字節的資料
+	# 確保 byte_data 是單位元組的資料
 	if len(byte_data) != 1:
 		raise ValueError("狀態註記應為長度為 1 的 bytes。")
 	
